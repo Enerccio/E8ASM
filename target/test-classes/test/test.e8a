@@ -1,0 +1,30 @@
+
+MACRO JMP 1
+	LDSG 2, &1[10:16];
+	LDSG 1, &1[4:9];
+	LCONST 0;
+	JMPZ &1[0:4];
+ENDMACRO
+
+SECTION entry 
+	ADDRESS 768
+	
+entry:
+	LCONST 14;
+	JMP $main.main;
+	NOP;
+	LCONST 10;
+	LCONST 3;
+	NOP;
+	NOP;
+	NOP;
+	NOP;
+	NOP;
+	NOP;
+	NOP;	
+
+SECTION main
+	ADDRESS ANYWHERE
+	
+main: 
+	HLT;
