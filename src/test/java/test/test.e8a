@@ -1,30 +1,44 @@
 
-MACRO JMP 1
-	LDSG 2, &1[10:16];
-	LDSG 1, &1[4:9];
-	LCONST 0;
-	JMPZ &1[0:4];
-ENDMACRO
 
 SECTION entry 
-	ADDRESS 768
+	ADDRESS 64
 	
 entry:
-	LCONST 14;
+	CALL $setup_system.setup_interrupts;
 	JMP $main.main;
-	NOP;
-	LCONST 10;
-	LCONST 3;
-	NOP;
-	NOP;
-	NOP;
-	NOP;
-	NOP;
-	NOP;
-	NOP;	
-
+	
 SECTION main
 	ADDRESS ANYWHERE
 	
 main: 
 	HLT;
+	
+SECTION setup_system
+	ADDRESS ANYWHERE
+	
+setup_interrupts:
+	LCONST16 $interrupt_handlers.fault_interrupt;
+	STORE16 0;
+	LCONST16 $interrupt_handlers.hw_interrupt;
+	STORE16 16;
+	LCONST16 $interrupt_handlers.sw_interrupt;
+	STORE16 32;
+	LCONST16 $interrupt_handlers.db_interrupt;
+	STORE16 48;
+	RET;
+	
+SECTION interrupt_handlers
+	ADDRESS ANYWHERE
+	
+fault_interrupt: 
+	NOP;
+	
+hw_interrupt: 
+	NOP;
+	
+sw_interrupt: 
+	NOP;
+
+db_interrupt: 
+	NOP;
+

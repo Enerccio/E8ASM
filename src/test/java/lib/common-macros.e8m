@@ -1,0 +1,77 @@
+
+// macro implementation of jump
+MACRO JMP 1
+	LDSG 2, &1[10:16];
+	LDSG 1, &1[4:9];
+	LCONST 0;
+	JMPZ &1[0:4];
+ENDMACRO
+
+// macro implementation of call
+MACRO CALL 1
+	PUSHA; 	  // store ACC
+	CPC;	  // store CPC to ACC
+	SWPACC;
+	LCONST 7; // add constant to CPC
+	PLUS;	  // add to address constant
+	SWPACC;
+	LCONST 8; // add constant to CPC (+7+8 = 15 offset after JMPZ)
+	PLUS;	  // add to address constant
+	SWPACC;
+	POPA;
+	PUSHB;
+	PUSHA;
+	LDSG 2, &1[10:16];
+	LDSG 1, &1[4:9];
+	LCONST 0;
+	JMPZ &1[0:4];
+ENDMACRO
+
+// macro implementation of ret
+MACRO RET 0
+	POPA;	 // restore ACC
+	POP_CPC; // restore CPC
+ENDMACRO
+
+// macro write 16 bit to memory
+//  stores ACC + BCC into address provided
+// THIS STORES AT LOW BOUNDARY, be sure to be safe!
+MACRO STORE16 1
+	LDSG 2, &1[10:16];
+	LDSG 1, &1[4:9];
+	STORE &1[0:4];
+	SWPACC;
+	STORE (&1+1)[0:4];
+ENDMACRO
+
+// macro write 16 bit to memory
+//  stores ACC + BCC into address provided
+// THIS STORES AT LOW BOUNDARY, be sure to be safe!
+MACRO LOAD16 1
+	LDSG 2, &1[10:16];
+	LDSG 1, &1[4:9];
+	LOAD (&1+1)[0:4];
+	SWPACC;
+	LOAD &1[0:4];
+ENDMACRO
+
+// load const 16bit
+MACRO LCONST16 1
+	LCONST &1[12:16];
+	SL;
+	SL;
+	SL;
+	SL;
+	SWPACC;
+	LCONST &1[8:12];
+	OR;
+	SWPACC;
+	LCONST &1[12:16];
+	SL;
+	SL;
+	SL;
+	SL;
+	SWPACC;
+	LCONST &1[8:12];
+	OR;
+ENDMACRO

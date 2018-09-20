@@ -52,6 +52,9 @@ public class Linker {
 					bf.units.add(a);
 					alreadyReferenced.add(a);
 					a = a.getNext();
+					if (a != null && a.getMode() != AddressMode.PREVIOUS) {
+						a = null;
+					}
 				}
 				bf.size = (int) bf.units.stream().map(i -> i.getOperations().size()).collect(Collectors.summarizingInt(i -> Integer.valueOf(i))).getSum();
 				blockFits.add(bf);
@@ -177,10 +180,10 @@ public class Linker {
 		List<BlockFit> sorted = new ArrayList<BlockFit>(blockFits);
 		
 		List<Fit> fitted = new ArrayList<Fit>();
-		fitted.add(new Fit(768, 65535, true));
+		fitted.add(new Fit(64, 65535, true));
 		
 		for (BlockFit bf : blockFits) {
-			if (bf.start != 1) {
+			if (bf.start != -1) {
 				insertAt(fitted, bf, bf.start, bf.size);
 				sorted.remove(bf);
 			}
@@ -194,7 +197,7 @@ public class Linker {
 			for (int i=0; i<fitted.size(); i++) {
 				Fit f = fitted.get(i);
 				if (f.free) {
-					if (f.width <= bf.size) {
+					if (bf.size <= f.width) {
 						insertAt(fitted, bf, f.start, bf.size);
 						continue outer;
 					}

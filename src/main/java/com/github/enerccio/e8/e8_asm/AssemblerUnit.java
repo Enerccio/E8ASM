@@ -43,7 +43,7 @@ import com.github.enerccio.e8.e8_asm.inst.POPPCP;
 import com.github.enerccio.e8.e8_asm.inst.POPSG1;
 import com.github.enerccio.e8.e8_asm.inst.PUSHA;
 import com.github.enerccio.e8.e8_asm.inst.PUSHB;
-import com.github.enerccio.e8.e8_asm.inst.PUSHPCP;
+import com.github.enerccio.e8.e8_asm.inst.PUSHCPC;
 import com.github.enerccio.e8.e8_asm.inst.PUSHSG1;
 import com.github.enerccio.e8.e8_asm.inst.SJMPZ;
 import com.github.enerccio.e8.e8_asm.inst.STORE;
@@ -66,18 +66,20 @@ import com.github.enerccio.e8.parser.e8asmParser.ExprContext;
 
 public class AssemblerUnit {
 	
-	private static class MacroDef {
+	public static class MacroDef {
 		private int paramCount;
 		private String content;
-	}
-	
+	}	
 
 	private File srcFile;
 	private boolean library;
-
-	public AssemblerUnit(File file, boolean library) {
+	private boolean libraryMacro;
+	private Map<String, MacroDef> globalMacros;
+	
+	public AssemblerUnit(File file, boolean library, boolean libraryMacro) {
 		this.setSrcFile(file);
 		this.setLibrary(library);
+		this.setLibraryMacro(libraryMacro);
 	}
 
 	public List<AssembledUnit> assemble() throws Exception {
@@ -85,7 +87,10 @@ public class AssemblerUnit {
 		
 		byte[] data = IOUtils.toByteArray(new FileInputStream(srcFile));
 		
-		ByteArrayInputStream finalAssembly = parseMacros(macros, data);
+		ByteArrayInputStream finalAssembly = parseMacros(isLibraryMacro() ? globalMacros : macros, data);
+		
+		if (isLibraryMacro())
+			return null; // macros do not compile
 		
 		data = IOUtils.toByteArray(finalAssembly);
 		finalAssembly = expandMacros(data, macros);
@@ -200,7 +205,8 @@ public class AssemblerUnit {
 			bos.write("\n".getBytes(Charset.forName("UTF-8")));
 			
 			for (BlockCommandsContext c : bctx.blockCommands()) {
-				if (c.assemblerCommand().command() != null && macros.containsKey(c.assemblerCommand().command().identifier().getText())) {
+				MacroDef md;
+				if (c.assemblerCommand().command() != null && (md = getMacro(c.assemblerCommand().command().identifier().getText(), macros)) != null) {
 					CmdArgsContext cc = c.assemblerCommand().command().cmdArgs();
 					List<String> args = new ArrayList<String>();
 					if (cc != null) {
@@ -208,10 +214,12 @@ public class AssemblerUnit {
 							args.add(ec.getText());
 						}
 					}
-					MacroDef md = macros.get(c.assemblerCommand().command().identifier().getText());
 					if (md.paramCount != args.size()) {
 						throw new AssemblyException("Bad argument count to macro " + c.assemblerCommand().command().identifier().getText());
 					} else {
+						if (c.label() != null) {
+							bos.write(getText(data, c.label().start, c.label().stop));
+						}
 						bos.write(replaceMacroContent(md.content, args).getBytes(Charset.forName("UTF-8")));
 					}
 				} else {
@@ -224,8 +232,16 @@ public class AssemblerUnit {
 		return new ByteArrayInputStream(bos.toByteArray());
 	}
 
+	private MacroDef getMacro(String key, Map<String, MacroDef> macros) {
+		MacroDef md = macros.get(key); 
+		if (md == null) {
+			md = globalMacros.get(key);
+		}
+		return md;
+	}
+
 	private byte[] getText(byte[] data, Token start, Token end) {
-		return Arrays.copyOfRange(data, start.getStartIndex(), end.getStopIndex()+1);
+		return Arrays.copyOfRange(data, start.getStartIndex(), Math.min(end.getStopIndex()+1, data.length));
 	}
 
 	private String replaceMacroContent(String content, List<String> args) {
@@ -233,7 +249,7 @@ public class AssemblerUnit {
 			String aid = "&" + (i+1);
 			content = StringUtils.replace(content, aid, args.get(i));
 		}
-		return content;
+		return content + "\n";
 	}
 
 	private void parseCommand(AssembledUnit au, CommandContext command) throws Exception {
@@ -332,12 +348,12 @@ public class AssemblerUnit {
 			au.getOperations().add(new POPSG1());
 			break;
 			
-		case "PUSH_PCP":
+		case "PUSH_CPC":
 			warnNotEmpty(command.start, args);
-			au.getOperations().add(new PUSHPCP());
+			au.getOperations().add(new PUSHCPC());
 			break;
 			
-		case "POP_PCP":
+		case "POP_CPC":
 			warnNotEmpty(command.start, args);
 			au.getOperations().add(new POPPCP());
 			break;
@@ -533,6 +549,22 @@ public class AssemblerUnit {
 
 	public void setLibrary(boolean library) {
 		this.library = library;
+	}
+
+	public boolean isLibraryMacro() {
+		return libraryMacro;
+	}
+
+	public void setLibraryMacro(boolean libraryMacro) {
+		this.libraryMacro = libraryMacro;
+	}
+
+	public Map<String, MacroDef> getGlobalMacros() {
+		return globalMacros;
+	}
+
+	public void setGlobalMacros(Map<String, MacroDef> globalMacros) {
+		this.globalMacros = globalMacros;
 	}
 
 }
