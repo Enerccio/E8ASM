@@ -83,6 +83,8 @@ public class AssemblerUnit {
 	}
 
 	public List<AssembledUnit> assemble() throws Exception {
+		Compiler.verbose("Assembling " + srcFile);
+		
 		Map<String, MacroDef> macros = new HashMap<String, MacroDef>();
 		
 		byte[] data = IOUtils.toByteArray(new FileInputStream(srcFile));

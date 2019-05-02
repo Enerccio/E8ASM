@@ -11,11 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.github.enerccio.e8.e8_asm.AssembledUnit.AddressMode;
 
@@ -142,26 +140,34 @@ public class Linker {
 			}
 		}
 		
-		File out = new File(outputFile);
-		String textValue = StringUtils.join(ol.stream().map(this::toHexString).collect(Collectors.toList()), ", ");
-		String[] values = textValue.split(Pattern.quote(" "));
+		Compiler.verbose("Transcoding output to hex.");
+		List<String> hexValues = ol.stream().map(this::toHexString).collect(Collectors.toList());
 		
+		Compiler.verbose("Outputting output to " + outputFile);
+		File out = new File(outputFile);		
 		FileOutputStream fos = new FileOutputStream(out);
-		List<String> elems = new ArrayList<String>(8);
-		for (int i=0; i<65536; i++) {
-			elems.add(values[i]);
-			if (elems.size() == 8) {
-				IOUtils.write((StringUtils.join(elems, " ") + "\n").getBytes(Charset.forName("utf-8")), fos);
-				elems.clear();
-			}
+		
+		IOUtils.write("DEPTH = 65535; \n".getBytes(Charset.forName("utf-8")), fos);
+		IOUtils.write("WIDTH = 8;\n".getBytes(Charset.forName("utf-8")), fos);
+		IOUtils.write("ADDRESS_RADIX = DEC; \n".getBytes(Charset.forName("utf-8")), fos);
+		IOUtils.write("DATA_RADIX = HEX; \n".getBytes(Charset.forName("utf-8")), fos);
+		IOUtils.write("\n".getBytes(Charset.forName("utf-8")), fos);
+		IOUtils.write("CONTENT\n".getBytes(Charset.forName("utf-8")), fos);
+		IOUtils.write("BEGIN\n".getBytes(Charset.forName("utf-8")), fos);
+		
+		for (int i=0; i<65535; i++) {
+			IOUtils.write(String.format("%s: %s;\n", ""+i, hexValues.get(i)).getBytes(Charset.forName("utf-8")), fos);
 		}
+		
+		IOUtils.write("END\n".getBytes(Charset.forName("utf-8")), fos);
+		
 		fos.close();
 	}
 	
 	private String toHexString(Byte v) {
 		if (v == null)
-			return "X\"00\"";
-		return String.format("X\"%02X\"", v);
+			return "00";
+		return String.format("%02X", v);
 	}
 	
 	private static class Fit {
