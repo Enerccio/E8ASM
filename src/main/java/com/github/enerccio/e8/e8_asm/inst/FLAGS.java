@@ -9,4 +9,8 @@ public class FLAGS extends Instruction {
 		return 0b00000001;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "FLAGS";
+	}
 }

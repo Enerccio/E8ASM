@@ -12,5 +12,10 @@ public class LCONST extends ExpressionInstruction {
 	public byte toByte() {
 		return (byte) (0b01000000 + getTinyValue());
 	}	
+	
+	@Override
+	public String toInst() {
+		return "LCONST";
+	}
 
 }

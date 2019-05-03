@@ -5,5 +5,7 @@ public abstract class Instruction {
 	public byte toByte() {
 		return 0;
 	}
+	
+	public abstract String toInst();
 
 }

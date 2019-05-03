@@ -25,10 +25,10 @@ import com.github.enerccio.e8.e8_asm.expr.ConstantExpression;
 import com.github.enerccio.e8.e8_asm.expr.MemoryExpression;
 import com.github.enerccio.e8.e8_asm.expr.PlusExpression;
 import com.github.enerccio.e8.e8_asm.inst.CPC;
+import com.github.enerccio.e8.e8_asm.inst.CTMP;
 import com.github.enerccio.e8.e8_asm.inst.FLAGS;
 import com.github.enerccio.e8.e8_asm.inst.GBIT;
 import com.github.enerccio.e8.e8_asm.inst.HLT;
-import com.github.enerccio.e8.e8_asm.inst.INTR;
 import com.github.enerccio.e8.e8_asm.inst.IOR;
 import com.github.enerccio.e8.e8_asm.inst.IOW;
 import com.github.enerccio.e8.e8_asm.inst.JMPZ;
@@ -50,8 +50,7 @@ import com.github.enerccio.e8.e8_asm.inst.STORE;
 import com.github.enerccio.e8.e8_asm.inst.STP;
 import com.github.enerccio.e8.e8_asm.inst.SWPACC;
 import com.github.enerccio.e8.e8_asm.inst.SWPSG;
-import com.github.enerccio.e8.e8_asm.inst.TCI;
-import com.github.enerccio.e8.e8_asm.inst.TDBG;
+import com.github.enerccio.e8.e8_asm.inst.TMP;
 import com.github.enerccio.e8.parser.e8asmLexer;
 import com.github.enerccio.e8.parser.e8asmParser;
 import com.github.enerccio.e8.parser.e8asmParser.AsmUnitContext;
@@ -70,6 +69,10 @@ public class AssemblerUnit {
 		private int paramCount;
 		private String content;
 	}	
+	
+	private static class ExpandedMacro {
+		private boolean expanded = false;
+	}
 
 	private File srcFile;
 	private boolean library;
@@ -94,8 +97,13 @@ public class AssemblerUnit {
 		if (isLibraryMacro())
 			return null; // macros do not compile
 		
-		data = IOUtils.toByteArray(finalAssembly);
-		finalAssembly = expandMacros(data, macros);
+		ExpandedMacro expandCheck = new ExpandedMacro();
+		expandCheck.expanded = true;
+		
+		while (expandCheck.expanded) {
+			data = IOUtils.toByteArray(finalAssembly);
+			finalAssembly = expandMacros(data, macros, expandCheck);
+		}
 		
 		List<AssembledUnit> aus = new ArrayList<AssembledUnit>();
 		e8asmLexer lexer = new e8asmLexer(new ANTLRInputStream(finalAssembly));
@@ -192,7 +200,7 @@ public class AssemblerUnit {
 		}
 	}
 	
-	private ByteArrayInputStream expandMacros(byte[] data, Map<String, MacroDef> macros) throws Exception {
+	private ByteArrayInputStream expandMacros(byte[] data, Map<String, MacroDef> macros, ExpandedMacro expanded) throws Exception {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		
 		e8asmLexer lexer = new e8asmLexer(new ANTLRInputStream(new ByteArrayInputStream(data)));
@@ -200,6 +208,7 @@ public class AssemblerUnit {
 		e8asmParser parser = new e8asmParser(tokens);
 		
 		AsmUnitContext ctx = parser.asmUnit();
+		expanded.expanded = false;
 		
 		for (DefinitionContext dctx : ctx.definition()) {
 			BlockContext bctx = dctx.block();
@@ -209,6 +218,8 @@ public class AssemblerUnit {
 			for (BlockCommandsContext c : bctx.blockCommands()) {
 				MacroDef md;
 				if (c.assemblerCommand().command() != null && (md = getMacro(c.assemblerCommand().command().identifier().getText(), macros)) != null) {
+					expanded.expanded = true;
+					
 					CmdArgsContext cc = c.assemblerCommand().command().cmdArgs();
 					List<String> args = new ArrayList<String>();
 					if (cc != null) {
@@ -290,19 +301,14 @@ public class AssemblerUnit {
 			au.getOperations().add(new SWPSG());
 			break;
 			
-		case "TDBG":
+		case "TMP":
 			warnNotEmpty(command.start, args);
-			au.getOperations().add(new TDBG());
+			au.getOperations().add(new TMP());
 			break;
 			
-		case "TCI":
+		case "CTMP":
 			warnNotEmpty(command.start, args);
-			au.getOperations().add(new TCI());
-			break;
-		
-		case "INTR":
-			warnNotEmpty(command.start, args);
-			au.getOperations().add(new INTR());
+			au.getOperations().add(new CTMP());
 			break;
 			
 		case "IOR":

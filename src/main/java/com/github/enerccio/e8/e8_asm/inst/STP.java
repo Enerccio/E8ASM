@@ -9,4 +9,9 @@ public class STP extends Instruction {
 		return 0b00000010;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "STP";
+	}
+	
 }

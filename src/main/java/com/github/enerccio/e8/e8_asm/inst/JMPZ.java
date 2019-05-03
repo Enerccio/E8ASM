@@ -13,5 +13,9 @@ public class JMPZ extends ExpressionInstruction {
 		return (byte) (0b01100000 + getTinyValue());
 	}
 	
+	@Override
+	public String toInst() {
+		return "JMPZ";
+	}
 	
 }

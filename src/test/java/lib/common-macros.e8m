@@ -1,10 +1,21 @@
 
-// macro implementation of jump
-MACRO JMP 1
+// macro implementation of jump if true
+MACRO IFJMP 1
 	LDSG 2, &1[10:16];
 	LDSG 1, &1[4:9];
-	LCONST 0;
 	JMPZ &1[0:4];
+ENDMACRO
+
+// macro implementation of jump
+MACRO JMP 1
+	LCONST 0;
+	IFJMP &1;
+ENDMACRO
+
+// macro implementation of jump if true
+MACRO JMP_IFEQ 1
+	MINUS;
+	IFJMP &1;
 ENDMACRO
 
 // macro implementation of call

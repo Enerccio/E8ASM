@@ -9,6 +9,9 @@ public class NOP extends Instruction {
 		return 0b00000000;
 	}
 	
-	
+	@Override
+	public String toInst() {
+		return "NOP";
+	}
 
 }

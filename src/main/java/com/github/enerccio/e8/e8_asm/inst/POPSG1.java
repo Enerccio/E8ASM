@@ -9,4 +9,8 @@ public class POPSG1 extends Instruction {
 		return 0b00010101;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "POPSG1";
+	}
 }

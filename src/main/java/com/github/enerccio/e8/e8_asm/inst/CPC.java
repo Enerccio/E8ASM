@@ -7,6 +7,11 @@ public class CPC extends Instruction {
 	@Override
 	public byte toByte() {
 		return 0b00000011;
+	}
+
+	@Override
+	public String toInst() {
+		return "CPC";
 	}	
 	
 }

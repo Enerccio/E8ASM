@@ -9,4 +9,8 @@ public class POPPCP extends Instruction {
 		return 0b00010111;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "POPPCP";
+	}
 }

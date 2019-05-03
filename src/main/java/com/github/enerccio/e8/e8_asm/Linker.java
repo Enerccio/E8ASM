@@ -11,11 +11,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 
 import com.github.enerccio.e8.e8_asm.AssembledUnit.AddressMode;
+import com.github.enerccio.e8.e8_asm.inst.ExpressionInstruction;
+import com.github.enerccio.e8.e8_asm.inst.LDSG;
 
 public class Linker {
 	
@@ -31,7 +34,7 @@ public class Linker {
 		linkedUnits = assembleUnits;
 	}
 
-	public void link(String outputFile) throws Exception {
+	public void link(String outputFile, boolean includeDisassembly) throws Exception {
 		Map<String, AssembledUnit> units = flatten();
 		
 		List<Byte> ol = new ArrayList<Byte>(65536);
@@ -128,6 +131,8 @@ public class Linker {
 			}
 		}
 		
+		Map<Integer, Instruction> debugInfo = new TreeMap<Integer, Instruction>();
+		
 		// output operations
 		
 		for (BlockFit bf : blockFits) {
@@ -135,6 +140,7 @@ public class Linker {
 			for (AssembledUnit au : bf.units) {
 				for (Instruction o : au.getOperations()) {
 					ol.set(pos, o.toByte());
+					debugInfo.put(pos, o);
 					++pos;
 				}
 			}
@@ -162,12 +168,47 @@ public class Linker {
 		IOUtils.write("END\n".getBytes(Charset.forName("utf-8")), fos);
 		
 		fos.close();
+		
+		if (includeDisassembly) {
+			File disOut = new File(outputFile + ".dis");		
+			FileOutputStream disfos = new FileOutputStream(disOut);
+			
+			IOUtils.write(("Disassembly of " + out + "\n\n").getBytes(Charset.forName("utf-8")), disfos);
+			
+			for (Integer addr : debugInfo.keySet()) {
+				String hexAddress = toHexString(addr.shortValue());
+				IOUtils.write((hexAddress + ": ").getBytes(Charset.forName("utf-8")), disfos);
+				
+				Instruction i = debugInfo.get(addr);
+				IOUtils.write(i.toInst().getBytes(Charset.forName("utf-8")), disfos);
+				if (i instanceof ExpressionInstruction) {
+					byte exprValue = ((ExpressionInstruction) i).getExpressionValue();
+					
+					IOUtils.write(("   (" + toHexString(exprValue) + ")").getBytes(Charset.forName("utf-8")), disfos);
+				} else if (i instanceof LDSG) {
+					short register = ((LDSG) i).getRegister().resolve();
+					short value = ((LDSG) i).getValue().resolve();
+					
+					IOUtils.write(("   (" + toHexString(register) + ", " + toHexString(value) + ")").getBytes(Charset.forName("utf-8")), disfos);
+				}
+				
+				IOUtils.write("\n".getBytes(Charset.forName("utf-8")), disfos);
+			}
+			
+			disfos.close();
+		}
 	}
 	
 	private String toHexString(Byte v) {
 		if (v == null)
 			return "00";
 		return String.format("%02X", v);
+	}
+	
+	private String toHexString(Short v) {
+		if (v == null)
+			return "00";
+		return String.format("%04X", v);
 	}
 	
 	private static class Fit {

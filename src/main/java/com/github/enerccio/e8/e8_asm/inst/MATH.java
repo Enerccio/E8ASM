@@ -64,7 +64,7 @@ public class MATH extends Instruction {
 		switch (mo) {
 		case SL: return 0b00011000;
 		case PLUS: return 0b00011001;
-		case MINUS: return 0b0001101;
+		case MINUS: return 0b0011101;
 		case AND: return 0b00011011;
 		case OR: return 0b00011100;
 		case XOR: return 0b00011101;
@@ -74,4 +74,19 @@ public class MATH extends Instruction {
 		return 0x0;
 	}	
 	
+	
+	@Override
+	public String toInst() {
+		switch (mo) {
+		case SL: return "SL";
+		case PLUS: return "PLUS";
+		case MINUS: return "MINUS";
+		case AND: return "AND";
+		case OR: return "OR";
+		case XOR: return "XOR";
+		case SR: return "SR";
+		case NEG: return "NEG";
+		}
+		return "MATHINVALID";
+	}
 }

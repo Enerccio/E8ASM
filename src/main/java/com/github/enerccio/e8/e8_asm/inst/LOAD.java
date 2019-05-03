@@ -12,5 +12,10 @@ public class LOAD extends ExpressionInstruction {
 	public byte toByte() {
 		return (byte) (0b00100000 + getTinyValue());
 	}	
+	
+	@Override
+	public String toInst() {
+		return "LOAD";
+	}
 
 }

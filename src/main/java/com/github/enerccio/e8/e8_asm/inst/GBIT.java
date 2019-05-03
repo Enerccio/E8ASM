@@ -15,12 +15,17 @@ public class GBIT extends ExpressionInstruction {
 	}	
 	
 	@Override
-	protected byte getTinyValue() {
+	public byte getTinyValue() {
 		byte r = getExpressionValue();
 		if (r < 0 || r > 7) {
 			throw new AssemblyException("Out of range (0-7): " + r); 
 		}
 		return r;
+	}
+	
+	@Override
+	public String toInst() {
+		return "GBIT";
 	}
 
 }

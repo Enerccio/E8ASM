@@ -9,4 +9,9 @@ public class SWPACC extends Instruction {
 		return 0b00000100;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "SWPACC";
+	}
+	
 }

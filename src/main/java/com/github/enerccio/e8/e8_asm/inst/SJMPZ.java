@@ -13,5 +13,8 @@ public class SJMPZ extends ExpressionInstruction {
 		return (byte) (0b01110000 + getTinyValue());
 	}
 	
-	
+	@Override
+	public String toInst() {
+		return "SJMPZ";
+	}
 }

@@ -32,6 +32,7 @@ public class Compiler {
 
 		options.addOption(new Option("h", false, "Prints this help"));
 		options.addOption(new Option("v", false, "Verbose output"));
+		options.addOption(new Option("d", false, "Create also disassembly file"));
 		options.addOption(new Option("i", true, "Source .e8a files to be assembled"));
 		options.addOption(new Option("o", true, "Output file"));
 		options.addOption(
@@ -99,10 +100,10 @@ public class Compiler {
 			}
 		}
 
-		new Compiler().compile(assembleUnits, macroSources, outputFile);
+		new Compiler().compile(assembleUnits, macroSources, outputFile, cmd.hasOption('d'));
 	}
 
-	private void compile(List<AssemblerUnit> assembleUnits, List<AssemblerUnit> macros, String outputFile)
+	private void compile(List<AssemblerUnit> assembleUnits, List<AssemblerUnit> macros, String outputFile, boolean includeDisassembly)
 			throws Exception {
 
 		System.out.println("Starting assembly");
@@ -168,7 +169,7 @@ public class Compiler {
 		System.out.println("Linking assembled units");
 
 		Linker l = new Linker(units);
-		l.link(outputFile);
+		l.link(outputFile, includeDisassembly);
 	}
 
 	private static String getJarName() {

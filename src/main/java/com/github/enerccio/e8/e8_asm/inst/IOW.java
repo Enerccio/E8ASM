@@ -9,4 +9,9 @@ public class IOW extends Instruction {
 		return 0b00001110;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "IOW";
+	}
+	
 }

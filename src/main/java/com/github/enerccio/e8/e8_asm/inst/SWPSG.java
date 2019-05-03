@@ -9,4 +9,9 @@ public class SWPSG extends Instruction {
 		return 0b00000101;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "SWPSG";
+	}
+	
 }

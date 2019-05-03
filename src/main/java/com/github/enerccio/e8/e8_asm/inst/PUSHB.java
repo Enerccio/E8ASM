@@ -9,4 +9,9 @@ public class PUSHB extends Instruction {
 		return 0b00010010;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "PUSHB";
+	}
+	
 }

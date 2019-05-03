@@ -9,4 +9,9 @@ public class IOR extends Instruction {
 		return 0b00001101;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "IOR";
+	}
+	
 }

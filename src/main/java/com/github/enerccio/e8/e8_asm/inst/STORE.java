@@ -13,4 +13,9 @@ public class STORE extends ExpressionInstruction {
 		return (byte) (0b00110000 + getTinyValue());
 	}	
 
+	@Override
+	public String toInst() {
+		return "STORE";
+	}
+	
 }

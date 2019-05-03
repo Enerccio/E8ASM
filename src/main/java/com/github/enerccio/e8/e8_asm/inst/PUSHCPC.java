@@ -9,4 +9,9 @@ public class PUSHCPC extends Instruction {
 		return 0b00010110;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "PUSHPCP";
+	}
+	
 }

@@ -8,5 +8,10 @@ public class HLT extends Instruction {
 	public byte toByte() {
 		return 0b00001111;
 	}	
+	
+	@Override
+	public String toInst() {
+		return "HLT";
+	}
 
 }

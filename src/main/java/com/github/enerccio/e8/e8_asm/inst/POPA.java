@@ -9,4 +9,9 @@ public class POPA extends Instruction {
 		return 0b00010001;
 	}	
 	
+	@Override
+	public String toInst() {
+		return "POPA";
+	}
+	
 }

@@ -12,6 +12,14 @@ public class LDSG extends Instruction {
 		this.e1 = e1;
 		this.e2 = e2;
 	}
+	
+	public Expression getRegister() {
+		return e1;
+	}
+	
+	public Expression getValue() {
+		return e2;
+	}
 
 	@Override
 	public byte toByte() {
@@ -29,5 +37,9 @@ public class LDSG extends Instruction {
 		return (byte) (t + ((byte) e2.resolve() & 0b00111111));
 	}
 	
+	@Override
+	public String toInst() {
+		return "LDSG";
+	}
 	
 }
